@@ -6,6 +6,10 @@ use App\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Registered;
+use App\Notifications\WelcomeNewUser;
+
 
 class RegisterController extends Controller
 {
@@ -27,7 +31,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -66,6 +70,44 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
+            'activate_token' => str_random(60),
         ]);
+    }
+
+    // override register
+    public function register(Request $request){
+        $this->validator($request->all())->validate();
+
+        event(new Registered($user = $this->create($request->all())));
+
+        $user->notify(new WelcomeNewUser($user));
+
+        return $this->registered($request, $user)
+            ?: redirect($this->redirectPath())->with('register_status', 'Please check your email to activate your account!');
+    }
+
+    public function activate(Request $request){
+
+        $activate_token = $request->token;
+
+        $user = User::where('activate_token', $activate_token)
+                ->where('activate', 0)
+                ->get();
+
+        if ( !$user->count() ){
+            return redirect( $this->redirectTo )->withErrors([
+                    'activation' => 'Oop! activation fialed! Please try again later.'
+                ]);
+        }
+
+        $user = $user->first();
+        $user->activate_token = '';
+        $user->activate = 1;
+        $user->save();
+
+        $this->guard()->login($user);
+
+        return redirect( $this->redirectTo )->with('activate_success', 'Congratulation! you have activated your account!');
+        
     }
 }

@@ -12,5 +12,15 @@
 */
 
 Route::get('/', function () {
-    return view('home');
+    return view('homepage');
+});
+
+Auth::routes();
+Route::get('logout', 'Auth\LoginController@logout');
+Route::get('activate/{token}', 'Auth\RegisterController@activate');
+
+Route::get('/home', 'HomeController@index');
+
+Route::get('test', function(){
+	return App\User::first()->roles()->get();
 });

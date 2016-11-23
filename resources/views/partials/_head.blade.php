@@ -7,7 +7,7 @@
 <meta name="author" content="">
 <link rel="icon" href="{{ url('favicon.ico') }}">
 
-<title>Fixed Top Navbar Example for Bootstrap</title>
+<title>Sideth</title>
 
 <!-- Bootstrap core CSS -->
 <link href="{{ url('css/bootstrap.css') }}" rel="stylesheet">
