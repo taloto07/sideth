@@ -7,7 +7,7 @@
 <meta name="author" content="">
 <link rel="icon" href="{{ url('favicon.ico') }}">
 
-<title>Sideth</title>
+<title>Sideth | @yield("title")</title>
 
 <!-- Bootstrap core CSS -->
 <link href="{{ url('css/bootstrap.css') }}" rel="stylesheet">

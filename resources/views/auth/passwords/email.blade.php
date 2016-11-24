@@ -1,5 +1,7 @@
 @extends('layout')
 
+@section('title', ' Forgot Password');
+
 <!-- Main Content -->
 @section('content')
 <div class="container">

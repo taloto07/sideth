@@ -15,12 +15,20 @@ Route::get('/', function () {
     return view('homepage');
 });
 
+Route::get('about', function () {
+    return view('about');
+});
+
+Route::get('contact', function () {
+    return view('contact');
+});
+
 Auth::routes();
 Route::get('logout', 'Auth\LoginController@logout');
 Route::get('activate/{token}', 'Auth\RegisterController@activate');
 
-Route::get('/home', 'HomeController@index');
+Route::resource('posts', 'PostController');
 
 Route::get('test', function(){
-	return App\User::first()->roles()->get();
+	
 });
