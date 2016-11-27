@@ -27,8 +27,9 @@ Auth::routes();
 Route::get('logout', 'Auth\LoginController@logout');
 Route::get('activate/{token}', 'Auth\RegisterController@activate');
 
-Route::resource('posts', 'PostController');
+Route::resource('posts', 'PostController');	
 
 Route::get('test', function(){
 	
+	// return asset('storage/images/test/0641d42bac47fac1def7e9de9c9e6338.jpeg');
 });

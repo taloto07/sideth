@@ -10,6 +10,7 @@ use Purifier;
 use App\Post;
 use App\Category;
 use App\Location;
+use App\PostImage;
 
 class PostController extends Controller
 {
@@ -49,12 +50,14 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {   
+        
         $this->validate($request, [
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'category_id' => 'required|exists:categories,id',
-            'location_id' => 'required|exists:locations,id'
+            'location_id' => 'required|exists:locations,id',
+            'images.*'    => 'image|max:3000',
         ]);
 
         $post = new Post();
@@ -65,7 +68,27 @@ class PostController extends Controller
         $post->location_id = $request->location_id;
         $post->save();
 
+        if ($request->hasFile('images')){
+
+            $location     = "images/posts/$post->id";
+            $disk         = 'public';
+            $index        = 0;
+            $postImages   = collect();
+            foreach ($request->file('images') as $image){
+                $fileName = $index . '.' . $image->getClientOriginalExtension();
+                $image->storeAs($location, $fileName, $disk);
+                $postImages->push(new PostImage(['path' => "$location/$fileName"]));
+                $index++;
+            }
+
+            $post->images()->saveMany($postImages);
+        }        
+
         return back()->with('posted', 'New post created successfully.');
+    }
+
+    private function storeImage($images, $post){
+
     }
 
     /**
@@ -89,7 +112,9 @@ class PostController extends Controller
      */
     public function edit($id)
     {
-        //
+        $post = Post::findOrFail($id);
+
+        return view('post.edit', compact('post'));
     }
 
     /**
