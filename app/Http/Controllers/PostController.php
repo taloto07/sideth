@@ -14,8 +14,8 @@ use App\Location;
 class PostController extends Controller
 {
     public function __construct(){
-        $this->middleware('auth')->except(['index', 'show']);
-        $this->middleware('admin')->except(['index', 'show']);
+        $this->middleware('auth')->except(['index', 'show', 'search']);
+        $this->middleware('admin')->except(['index', 'show', 'search']);
     }
 
     /**
@@ -102,6 +102,35 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         //
+    }
+
+    /**
+     * Search for posts
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $keyword  = $request->keyword;
+        $locationId = $request->locationId;
+        $categoryId = $request->categoryId;
+
+        $dynamicFilters = collect([['title', 'like', '%' . $keyword . '%']]);
+
+        // if locationId exist than add accordingly
+        if (strlen($locationId) > 0) {
+            $dynamicFilters->push(['location_id', '=', $locationId]);
+        }
+
+        // if categoryId exist than add accordingly
+        if (strlen($categoryId) > 0) {
+            $dynamicFilters->push(['category_id', '=', $categoryId]);
+        }
+
+        $posts = Post::where($dynamicFilters->toArray())->get();
+
+        return view('post.index', compact('posts'));
     }
 
     /**

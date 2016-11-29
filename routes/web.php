@@ -27,6 +27,7 @@ Auth::routes();
 Route::get('logout', 'Auth\LoginController@logout');
 Route::get('activate/{token}', 'Auth\RegisterController@activate');
 
+Route::get('posts/search', 'PostController@search');
 Route::resource('posts', 'PostController');
 
 Route::get('test', function(){
