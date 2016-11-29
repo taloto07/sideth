@@ -30,4 +30,8 @@ class User extends Authenticatable
     public function roles(){
         return $this->belongsToMany('App\Role')->withTimestamps();
     }
+
+    public function isAdmin(){
+        return $this->roles()->where('name', 'admin')->get()->count();
+    }
 }

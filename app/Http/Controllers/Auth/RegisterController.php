@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -10,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Registered;
 use App\Notifications\WelcomeNewUser;
 
+use App\User;
+use App\Role;
 
 class RegisterController extends Controller
 {
@@ -66,12 +67,19 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $normal = Role::where('name', 'normal')->first();
+        
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
             'activate_token' => str_random(60),
         ]);
+
+        // add normal role to user
+        $user->roles()->attach($normal);
+
+        return $user;
     }
 
     // override register
