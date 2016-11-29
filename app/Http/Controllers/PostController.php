@@ -118,13 +118,21 @@ class PostController extends Controller
 
         $dynamicFilters = collect([['title', 'like', '%' . $keyword . '%']]);
 
+        $posts = collect();
+
         // if locationId exist than add accordingly
-        if (strlen($locationId) > 0) {
+        if ($request->has('locationId')) {
+            if (!is_numeric($locationId)) {
+                return view('post.index', compact('posts'));
+            }
             $dynamicFilters->push(['location_id', '=', $locationId]);
         }
 
         // if categoryId exist than add accordingly
-        if (strlen($categoryId) > 0) {
+        if ($request->has('categoryId')) {
+            if (!is_numeric($categoryId)) {
+                return view('post.index', compact('posts'));
+            }
             $dynamicFilters->push(['category_id', '=', $categoryId]);
         }
 
