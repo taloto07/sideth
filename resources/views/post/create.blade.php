@@ -42,24 +42,31 @@
 				<span id="locationErrorMessage" class="help-block">{{ $errors->first('location_id') }}</span>
 			</div>
 
-			<div class="form-group {{ $errors->has('description') ? 'has-error' : '' }}">
+			<noscript>Javascript required to write description.<br/></noscript>
+			<div id="requireJS" class="form-group {{ $errors->has('description') ? 'has-error' : '' }} no-js">
 				{!! Form::label('description', 'Description', ['class' => 'control-label']) !!}
 				{!! Form::textarea('description', null, ['class' => 'form-control', 'aria-describedby' => "descriptionErrorMessage"]) !!}
 				<span id="descriptionErrorMessage" class="help-block">{{ $errors->first('description') }}</span>
 			</div>
 
-			<div class="form-group {{ count($errors->get('images.*')) > 0 ? 'has-error' : '' }}">
+			<noscript>Javascript required to upload images.<br/></noscript>
+			<div id="requireJS" class="form-group {{ count($errors->get('images.*')) > 0 || $errors->has('images') ? 'has-error' : '' }} no-js">
 				<noscript>Javascript required to upload images.<br/></noscript>
 				<label class="control-label" for="images[]">Images:</label>
 				<input id="images" name="images[]" type="file" multiple class="file-loading" accept="image/*" />
 				<span id="images" class="help-block">
+					{{ $errors->first('images') }}
 					@foreach($errors->get('images.*') as $message)
 						{{ $message[0] }} <br/>
 					@endforeach
+					
 				</span>
 			</div>
 
-			{!! Form::submit('Post', ['class' => 'btn btn-success btn-lg btn-block form-spacing-top']) !!}
+			<div class="text-center">
+				{!! Html::linkRoute('posts.index', 'Cancel', [], ['class' => 'btn btn-warning btn-lg']) !!}
+				{!! Form::submit('Post', ['class' => 'btn btn-success btn-lg']) !!}
+			</div>
 
 		{!! Form::close() !!}
 
@@ -75,5 +82,13 @@
 	{!! Html::script('js/file-input/plugins/purify.js') !!}
 	{!! Html::script('js/file-input/fileinput.js') !!}
 	{!! Html::script('js/file-input/fileinputCreatePost.js') !!}
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+
+			$("div#requireJS").show();
+
+		});
+	</script>
 
 @endsection

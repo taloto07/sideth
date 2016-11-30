@@ -2,12 +2,121 @@
 
 @section('title', "Edit $post->title");
 
+@section('stylesheet')
+	
+	{!! Html::style('css/file-input/fileinput.css') !!}
+	
+	{!! Html::script('js/tinymce/tinymce.min.js') !!}
+	{!! Html::script('js/tinymce/textArea.js') !!}
+
+@endsection
+
 @section("content")
 
-{{$post->title}}
+<div class="row">
+	<div class="col-md-10 col-md-offset-1">
+		<h1>Edit Post</h1>
+		<hr>
 
-<br>
+		@if( session('posted') )
+			<div class="alert alert-success">{{session('posted')}}</div>
+		@endif
 
-{!! $post->description !!}
+		{!! Form::model($post, ['route' => ['posts.update', $post->id], 'method' => 'PUT', 'files' => true ]) !!}
+			
+			<div class="form-group {{ $errors->has('title') ? 'has-error' : '' }}">
+				{!! Form::label('title', 'Title:', ['class' => 'control-label']) !!}
+				{!! Form::text('title', null, ['class' => 'form-control', 'aria-describedby' => "titleErrorMessage"]) !!}
+				<span id="titleErrorMessage" class="help-block">{{ $errors->first('title') }}</span>
+			</div>
+
+			<div class="form-group {{ $errors->has('category_id') ? 'has-error' : '' }}">
+				{!! Form::label('category_id', 'Category:', ['class' => 'control-label']) !!}
+				{!! Form::select('category_id', $categories, null, ['placeholder' => 'Select Category', 'class' => 'form-control', 'aria-describedby' => "categoryErrorMessage"]) !!}
+				<span id="categoryErrorMessage" class="help-block">{{ $errors->first('category_id') }}</span>
+			</div>
+
+			<div class="form-group {{ $errors->has('location_id') ? 'has-error' : '' }}">
+				{!! Form::label('location_id', 'Location:', ['class' => 'control-label']) !!}
+				{!! Form::select('location_id', $locations, null, ['placeholder' => 'Select Location', 'class' => 'form-control', 'aria-describedby' => "locationErrorMessage"]) !!}
+				<span id="locationErrorMessage" class="help-block">{{ $errors->first('location_id') }}</span>
+			</div>
+
+			<noscript>Javascript required to write description.<br/></noscript>
+			<div id="requireJS" class="form-group {{ $errors->has('description') ? 'has-error' : '' }} no-js">
+				{!! Form::label('description', 'Description', ['class' => 'control-label']) !!}
+				{!! Form::textarea('description', null, ['class' => 'form-control', 'aria-describedby' => "descriptionErrorMessage"]) !!}
+				<span id="descriptionErrorMessage" class="help-block">{{ $errors->first('description') }}</span>
+			</div>
+
+			<noscript>Javascript required to upload images.<br/></noscript>
+			<div id="requireJS" class="form-group {{ count($errors->get('images.*')) > 0 || $errors->has('images') ? 'has-error' : '' }} no-js" >
+				
+				<label class="control-label" for="images[]">Images:</label>
+				<input id="images" name="images[]" type="file" multiple class="file-loading" accept="image/*" />
+				<span id="images" class="help-block">
+					{{ $errors->first('images') }} <br/>
+					@foreach($errors->get('images.*') as $message)
+						{{ $message[0] }} <br/>
+					@endforeach
+				</span>
+			</div>
+
+			<div class="text-center">
+			{!! Html::linkRoute('posts.show', 'Cancel', ['post' => $post->id], ['class' => 'btn btn-warning btn-lg']) !!}
+
+			{!! Form::submit('Update', ['class' => 'btn btn-success btn-lg']) !!}
+			
+			</div>
+
+		{!! Form::close() !!}
+
+	</div>
+</div>
+
+@endsection
+
+@section('javascript')
+	
+	{!! Html::script('js/file-input/plugins/canvas-to-blob.js') !!}
+	{!! Html::script('js/file-input/plugins/sortable.js') !!}
+	{!! Html::script('js/file-input/plugins/purify.js') !!}
+	{!! Html::script('js/file-input/fileinput.js') !!}
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+
+			$("div#requireJS").show();
+
+			var _token = $('Form').find('input[name=_token]').val();
+
+			$('#images').fileinput({
+				showUpload: false,
+				allowedFileTypes: ['image'],
+				allowedPreviewTypes: ['image'],
+				previewFileType: 'image',
+				browseLabel: "Pick Images",
+				browseIcon: "<i class=\"glyphicon glyphicon-picture\"></i> ",
+				removeClass: "btn btn-danger",
+				maxFileCount: 10,
+				maxFileSize: 3000,
+
+				initialPreviewAsData: true,
+				overwriteInitial: false,
+				initialPreview: [
+					@foreach($post->images as $image)
+						"{{ url(asset('storage/' . $image->path)) }}",
+					@endforeach
+				],
+				initialPreviewConfig: [
+					@foreach($post->images as $image)
+						{ url: "{{ route( 'postimages.destroy', ['id' => $image->id] ) }}" },
+					@endforeach
+				],
+				deleteExtraData: {_method: 'delete', _token: _token},
+				validateInitialCount: true,
+			});
+		});
+	</script>
 
 @endsection

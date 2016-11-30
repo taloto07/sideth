@@ -32,7 +32,7 @@
 				<td>
 					<div class="row">
 						<div class="col-md-3">
-							<button class="btn btn-primary">edit</button>
+							<a class="btn btn-primary" href="{{ route('posts.edit', ['post' => $post->id]) }}">edit</a>
 						</div>
 						<div class="col-md-3 col-md-offset-1">
 							{!! Form::open(['route' => ['posts.destroy', $post->id], 'method' => 'delete' ]) !!}

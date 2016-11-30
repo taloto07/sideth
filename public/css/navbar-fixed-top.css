@@ -6,3 +6,7 @@ body {
 .form-spacing-top {
 	margin-top: 20px;
 }
+
+.no-js {
+	display:none;
+}

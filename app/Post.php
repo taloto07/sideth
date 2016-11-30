@@ -11,6 +11,18 @@ class Post extends Model
 
 	protected $dates = ['deleted_at'];
 
+    public static function boot(){
+        parent::boot();
+
+        static::deleted(function($post){
+            $post->images()->delete();
+        });
+
+        static::restored(function($post){
+            $post->images()->restore();
+        });
+    }
+
     public function category(){
     	return $this->belongsTo('App\Category');
     }

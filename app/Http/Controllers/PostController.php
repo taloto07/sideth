@@ -14,6 +14,8 @@ use App\PostImage;
 
 class PostController extends Controller
 {
+    const POST_IMAGE_MAX = 10;
+    
     public function __construct(){
         $this->middleware('auth')->except(['index', 'show']);
         $this->middleware('admin')->except(['index', 'show']);
@@ -51,15 +53,19 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {   
-        
+        $erroMessages = [
+            'images.max' => 'The total :attribute may not be greater than :max'
+        ];
+
         $this->validate($request, [
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'category_id' => 'required|exists:categories,id',
             'location_id' => 'required|exists:locations,id',
-            'images.*'    => 'image|max:3000',
-        ]);
-
+            'images'      => 'sometimes|max:'.PostController::POST_IMAGE_MAX,
+            'images.*'    => 'sometimes|image|max:3000',
+        ], $erroMessages);
+        
         $post = new Post();
 
         $post->title       = strip_tags($request->title);
@@ -69,26 +75,26 @@ class PostController extends Controller
         $post->save();
 
         if ($request->hasFile('images')){
-
-            $location     = "images/posts/$post->id";
-            $disk         = 'public';
-            $index        = 0;
-            $postImages   = collect();
-            foreach ($request->file('images') as $image){
-                $fileName = $index . '.' . $image->getClientOriginalExtension();
-                $image->storeAs($location, $fileName, $disk);
-                $postImages->push(new PostImage(['path' => "$location/$fileName"]));
-                $index++;
-            }
-
-            $post->images()->saveMany($postImages);
+            $this->storeImage($request->file('images'), $post);
         }        
 
-        return back()->with('posted', 'New post created successfully.');
+        return redirect()->route('posts.show', $post->id);
     }
 
     private function storeImage($images, $post){
+        $location     = "images/posts/$post->id";
+        $disk         = 'public';
+        $countImage   = $post->images()->withTrashed()->count();
+        $index        = $countImage ? $countImage : 0;
+        $postImages   = collect();
+        foreach ($images as $image){
+            $fileName = $index . '.' . $image->getClientOriginalExtension();
+            $image->storeAs($location, $fileName, $disk);
+            $postImages->push(new PostImage(['path' => "$location/$fileName"]));
+            $index++;
+        }
 
+        return $post->images()->saveMany($postImages);
     }
 
     /**
@@ -113,8 +119,10 @@ class PostController extends Controller
     public function edit($id)
     {
         $post = Post::findOrFail($id);
+        $locations = Location::all()->pluck('city', 'id');
+        $categories = Category::all()->pluck('name', 'id');
 
-        return view('post.edit', compact('post'));
+        return view('post.edit', compact('post', 'locations', 'categories'));
     }
 
     /**
@@ -126,7 +134,37 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $post = Post::findOrFail($id);
+        $images = $post->images();
+
+        $totalLeftImage = PostController::POST_IMAGE_MAX - $images->count();
+
+        $erroMessages = [
+            'images.max' => 'The total :attribute may not be greater than ' . PostController::POST_IMAGE_MAX
+        ];
+
+        $validate = [
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'category_id' => 'required|exists:categories,id',
+            'location_id' => 'required|exists:locations,id',
+            'images'      => 'sometimes|max:'.$totalLeftImage,
+            'images.*'    => 'sometimes|image|max:3000',
+        ];
+
+        $this->validate($request, $validate, $erroMessages);
+
+        $post->title       = strip_tags($request->title);
+        $post->description = Purifier::clean($request->description);
+        $post->category_id = $request->category_id;
+        $post->location_id = $request->location_id;
+        $post->save();
+
+        if ($request->hasFile('images')){
+            $this->storeImage($request->file('images'), $post);
+        }
+        
+        return redirect()->route('posts.show', ['post' => $post->id]);
     }
 
     /**
@@ -137,7 +175,8 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
+
         Post::destroy($id);
-        return back();
+        return redirect()->route('posts.index');
     }
 }
