@@ -15,8 +15,8 @@ use App\PostImage;
 class PostController extends Controller
 {
     public function __construct(){
-        $this->middleware('auth')->except(['index', 'show']);
-        $this->middleware('admin')->except(['index', 'show']);
+        $this->middleware('auth')->except(['index', 'show', 'search']);
+        $this->middleware('admin')->except(['index', 'show', 'search']);
     }
 
     /**
@@ -127,6 +127,43 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         //
+    }
+
+    /**
+     * Search for posts
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $keyword  = $request->keyword;
+        $locationId = $request->locationId;
+        $categoryId = $request->categoryId;
+
+        $dynamicFilters = collect([['title', 'like', '%' . $keyword . '%']]);
+
+        $posts = collect();
+
+        // if locationId exist than add accordingly
+        if ($request->has('locationId')) {
+            if (!is_numeric($locationId)) {
+                return view('post.index', compact('posts'));
+            }
+            $dynamicFilters->push(['location_id', '=', $locationId]);
+        }
+
+        // if categoryId exist than add accordingly
+        if ($request->has('categoryId')) {
+            if (!is_numeric($categoryId)) {
+                return view('post.index', compact('posts'));
+            }
+            $dynamicFilters->push(['category_id', '=', $categoryId]);
+        }
+
+        $posts = Post::where($dynamicFilters->toArray())->get();
+
+        return view('post.index', compact('posts'));
     }
 
     /**
