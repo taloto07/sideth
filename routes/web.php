@@ -32,4 +32,5 @@ Route::resource('posts', 'PostController');
 
 Route::get('test', function(){
 	
+	// return asset('storage/images/test/0641d42bac47fac1def7e9de9c9e6338.jpeg');
 });
