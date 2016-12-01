@@ -6,6 +6,9 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class ExampleTest extends TestCase
 {
+    use DatabaseMigrations;
+    use DatabaseTransactions;
+
     /**
      * A basic functional test example.
      *
@@ -13,11 +16,10 @@ class ExampleTest extends TestCase
      */
     public function testBasicExample()
     {
-        $this->visit('/')
-             ->see('Laravel');
+        $home = $this->visit('/');
+        
+        $home->see('Sideth');
 
-        $this->seeInDatabase('users', [
-                'email' => 'taloto07@yahoo.com'
-            ]);
+        $home->assertViewHasAll(['locations', 'categories']);
     }
 }

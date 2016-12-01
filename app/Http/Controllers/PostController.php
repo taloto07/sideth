@@ -15,10 +15,31 @@ use App\PostImage;
 class PostController extends Controller
 {
     const POST_IMAGE_MAX = 10;
+
+    const SORTS = [
+        1 => 'Newest First',
+        2 => 'Oldest First'
+    ];
     
     public function __construct(){
-        $this->middleware('auth')->except(['index', 'show']);
-        $this->middleware('admin')->except(['index', 'show']);
+        $this->middleware('auth')->except(['index', 'show', 'search']);
+        $this->middleware('admin')->except(['index', 'show', 'search']);
+    }
+
+    private function storeImage($images, $post){
+        $location     = "images/posts/$post->id";
+        $disk         = 'public';
+        $countImage   = $post->images()->withTrashed()->count();
+        $index        = $countImage ? $countImage : 0;
+        $postImages   = collect();
+        foreach ($images as $image){
+            $fileName = $index . '.' . $image->getClientOriginalExtension();
+            $image->storeAs($location, $fileName, $disk);
+            $postImages->push(new PostImage(['path' => "$location/$fileName"]));
+            $index++;
+        }
+
+        return $post->images()->saveMany($postImages);
     }
 
     /**
@@ -39,10 +60,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        $locations = Location::all()->pluck('city', 'id');
-        $categories = Category::all()->pluck('name', 'id');
-
-        return view( 'post.create', compact('locations', 'categories') );
+        return view( 'post.create' );
     }
 
     /**
@@ -81,22 +99,6 @@ class PostController extends Controller
         return redirect()->route('posts.show', $post->id);
     }
 
-    private function storeImage($images, $post){
-        $location     = "images/posts/$post->id";
-        $disk         = 'public';
-        $countImage   = $post->images()->withTrashed()->count();
-        $index        = $countImage ? $countImage : 0;
-        $postImages   = collect();
-        foreach ($images as $image){
-            $fileName = $index . '.' . $image->getClientOriginalExtension();
-            $image->storeAs($location, $fileName, $disk);
-            $postImages->push(new PostImage(['path' => "$location/$fileName"]));
-            $index++;
-        }
-
-        return $post->images()->saveMany($postImages);
-    }
-
     /**
      * Display the specified resource.
      *
@@ -118,11 +120,9 @@ class PostController extends Controller
      */
     public function edit($id)
     {
-        $post = Post::findOrFail($id);
-        $locations = Location::all()->pluck('city', 'id');
-        $categories = Category::all()->pluck('name', 'id');
+        $post       = Post::findOrFail($id);
 
-        return view('post.edit', compact('post', 'locations', 'categories'));
+        return view('post.edit', compact('post'));
     }
 
     /**
@@ -165,6 +165,53 @@ class PostController extends Controller
         }
         
         return redirect()->route('posts.show', ['post' => $post->id]);
+    }
+
+    /**
+     * Search for posts
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $keyword     = $request->keyword;
+        $location_id = $request->location_id;
+        $category_id = $request->category_id;
+
+        $dynamicFilters = collect([['title', 'like', '%' . $keyword . '%']]);
+
+        // if location_id exist than add accordingly
+        if ($request->has('location_id')) {
+            $dynamicFilters->push(['location_id', '=', $location_id]);
+        }
+
+        // if category_id exist than add accordingly
+        if ($request->has('category_id')) {
+            $dynamicFilters->push(['category_id', '=', $category_id]);
+        }
+
+        // grap posts based on keyword and/or location_id and/or category_id
+        $posts = Post::where($dynamicFilters->toArray());
+
+        // if sort exist
+        if ($request->has('sort') && array_key_exists($request->sort, PostController::SORTS)){
+            $sort = $request->sort;
+            
+            if ($sort == 1){
+                $posts = $posts->orderBy('created_at', 'desc');
+            }
+
+            if ($sort == 2){
+                $posts = $posts->orderBy('created_at', 'asc');
+            }
+        }
+
+        $posts = $posts->get();
+
+        $sorts = PostController::SORTS;
+
+        return view('post.search', compact('posts', 'sorts'));
     }
 
     /**

@@ -27,10 +27,12 @@ Auth::routes();
 Route::get('logout', 'Auth\LoginController@logout');
 Route::get('activate/{token}', 'Auth\RegisterController@activate');
 
-Route::resource('posts', 'PostController');
-
 Route::delete('postimages/{id}', 'PostImageController@destroy')
 ->name('postimages.destroy');
+
+Route::get('posts/search', 'PostController@search')
+->name('posts.search');
+Route::resource('posts', 'PostController');
 
 Route::get('test', function(){
 	
