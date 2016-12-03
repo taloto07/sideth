@@ -36,5 +36,5 @@ Route::resource('posts', 'PostController');
 
 Route::get('test', function(){
 	
-	return App\Post::find(7)->images()->withTrashed()->count();
+	return App\Http\Controllers\PostController::SORTS;
 });

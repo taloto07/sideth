@@ -16,10 +16,16 @@ class PostController extends Controller
 {
     const POST_IMAGE_MAX = 10;
 
-    const SORTS = [
+    const SORTS_VIEW = [
         1 => 'Newest First',
-        2 => 'Oldest First'
+        2 => 'Oldest First',
     ];
+
+    const SORTS_BY = [
+        1 => ['field' => 'created_at', 'order' => 'desc'],
+        2 => ['field' => 'created_at', 'order' => 'asc']
+    ];
+
     
     public function __construct(){
         $this->middleware('auth')->except(['index', 'show', 'search']);
@@ -195,21 +201,14 @@ class PostController extends Controller
         $posts = Post::where($dynamicFilters->toArray());
 
         // if sort exist
-        if ($request->has('sort') && array_key_exists($request->sort, PostController::SORTS)){
-            $sort = $request->sort;
-            
-            if ($sort == 1){
-                $posts = $posts->orderBy('created_at', 'desc');
-            }
-
-            if ($sort == 2){
-                $posts = $posts->orderBy('created_at', 'asc');
-            }
+        if ($request->has('sort') && array_key_exists($request->sort, PostController::SORTS_BY)){
+            $sortBy = PostController::SORTS_BY[$request->sort];
+            $posts = $posts->orderBy($sortBy['field'], $sortBy['order']);
         }
 
         $posts = $posts->get();
 
-        $sorts = PostController::SORTS;
+        $sorts = PostController::SORTS_VIEW;
 
         return view('post.search', compact('posts', 'sorts'));
     }
