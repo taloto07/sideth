@@ -168,6 +168,7 @@ return [
          */
         Collective\Html\HtmlServiceProvider::class,
         Mews\Purifier\PurifierServiceProvider::class,
+        Laravel\Passport\PassportServiceProvider::class,
         //
 
         /*
