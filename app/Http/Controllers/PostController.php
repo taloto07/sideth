@@ -185,29 +185,40 @@ class PostController extends Controller
         $location_id = $request->location_id;
         $category_id = $request->category_id;
 
-        $dynamicFilters = collect([['title', 'like', '%' . $keyword . '%']]);
+        $titleFilter = collect([['title', 'like', '%' . $keyword . '%']]);
+        $descriptionFilter = collect([['description', 'like', '%' . $keyword . '%']]);
+        // $posts = Post::where('title', 'like', "%$keyword%");
+                    // ->orWhere('description', 'like', "%$keyword%");
 
         // if location_id exist than add accordingly
         if ($request->has('location_id')) {
-            $dynamicFilters->push(['location_id', '=', $location_id]);
+            $titleFilter->push(['location_id', '=', $location_id]);
+            $descriptionFilter->push(['location_id', '=', $location_id]);
+            // $posts = $posts->where('location_id', $location_id);
         }
 
         // if category_id exist than add accordingly
         if ($request->has('category_id')) {
-            $dynamicFilters->push(['category_id', '=', $category_id]);
+            $titleFilter->push(['category_id', '=', $category_id]);
+            $descriptionFilter->push(['category_id', '=', $category_id]);
+            // $posts = $posts->where('category_id', $category_id);
         }
 
-        // grap posts based on keyword and/or location_id and/or category_id
-        $posts = Post::where($dynamicFilters->toArray());
+        $posts = Post::Where($titleFilter->toArray())
+                        ->orWhere($descriptionFilter->toArray());
 
         // if sort exist
         if ($request->has('sort') && array_key_exists($request->sort, PostController::SORTS_BY)){
             $sortBy = PostController::SORTS_BY[$request->sort];
             $posts = $posts->orderBy($sortBy['field'], $sortBy['order']);
+        } else {
+            $posts = $posts->orderBy('title', 'asc')->orderBy('description', 'asc');
         }
 
+        // query to database to get posts
         $posts = $posts->get();
 
+        // sorts list for view to display
         $sorts = PostController::SORTS_VIEW;
 
         return view('post.search', compact('posts', 'sorts'));
