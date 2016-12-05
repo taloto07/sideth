@@ -32,7 +32,7 @@
 						<td>{{ $post->category->name }}</td>
 						<td>{{ $post->location->city }}</td>
 						<td>{{ $post->created_at->format('M j, Y h:ia') }}</td>
-						@can('update', App\Post::class)
+						@can('update', $post)
 							<td>
 								<div class="row">
 									<div class="col-md-3">

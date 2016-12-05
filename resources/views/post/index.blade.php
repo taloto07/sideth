@@ -12,7 +12,7 @@
 		<th>Description</th>
 		<th>Category</th>
 		<th>Location</th>
-		@can('update', App\Post::class)
+		@can('create', App\Post::class)
 			<th>Actions</th>
 		@endcan
 	</tr>
@@ -28,7 +28,7 @@
 			<td> {{ substr(strip_tags($post->description), 0, 50) }}{{ strlen(strip_tags($post->description)) > 50 ? '...' : '' }}</td>
 			<td>{{ $post->category->name }}</td>
 			<td>{{ $post->location->city }}</td>
-			@can('update', App\Post::class)
+			@can('update', $post)
 				<td>
 					<div class="row">
 						<div class="col-md-3">

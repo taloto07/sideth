@@ -29,7 +29,7 @@ class PostController extends Controller
     
     public function __construct(){
         $this->middleware('auth')->except(['index', 'show', 'search']);
-        $this->middleware('admin')->except(['index', 'show', 'search']);
+        $this->middleware('can:create,App\Post')->except(['index', 'show', 'search']);
     }
 
     private function storeImage($images, $post){
@@ -223,6 +223,7 @@ class PostController extends Controller
     {
 
         Post::destroy($id);
-        return redirect()->route('posts.index');
+        return back();
+        // return redirect()->route('posts.index');
     }
 }
