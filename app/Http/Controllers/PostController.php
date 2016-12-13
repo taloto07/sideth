@@ -15,17 +15,6 @@ use App\PostImage;
 class PostController extends Controller
 {
     const POST_IMAGE_MAX = 10;
-
-    const SORTS_VIEW = [
-        1 => 'Newest First',
-        2 => 'Oldest First',
-    ];
-
-    const SORTS_BY = [
-        1 => ['field' => 'created_at', 'order' => 'desc'],
-        2 => ['field' => 'created_at', 'order' => 'asc']
-    ];
-
     
     public function __construct(){
         $this->middleware('auth')->except(['index', 'show', 'search']);
@@ -181,45 +170,12 @@ class PostController extends Controller
      */
     public function search(Request $request)
     {
-        $keyword     = $request->keyword;
-        $location_id = $request->location_id;
-        $category_id = $request->category_id;
-
-        $titleFilter = collect([['title', 'like', '%' . $keyword . '%']]);
-        $descriptionFilter = collect([['description', 'like', '%' . $keyword . '%']]);
-        // $posts = Post::where('title', 'like', "%$keyword%");
-                    // ->orWhere('description', 'like', "%$keyword%");
-
-        // if location_id exist than add accordingly
-        if ($request->has('location_id')) {
-            $titleFilter->push(['location_id', '=', $location_id]);
-            $descriptionFilter->push(['location_id', '=', $location_id]);
-            // $posts = $posts->where('location_id', $location_id);
-        }
-
-        // if category_id exist than add accordingly
-        if ($request->has('category_id')) {
-            $titleFilter->push(['category_id', '=', $category_id]);
-            $descriptionFilter->push(['category_id', '=', $category_id]);
-            // $posts = $posts->where('category_id', $category_id);
-        }
-
-        $posts = Post::Where($titleFilter->toArray())
-                        ->orWhere($descriptionFilter->toArray());
-
-        // if sort exist
-        if ($request->has('sort') && array_key_exists($request->sort, PostController::SORTS_BY)){
-            $sortBy = PostController::SORTS_BY[$request->sort];
-            $posts = $posts->orderBy($sortBy['field'], $sortBy['order']);
-        } else {
-            $posts = $posts->orderBy('title', 'asc')->orderBy('description', 'asc');
-        }
-
         // query to database to get posts
+        $posts = Post::search($request);
         $posts = $posts->get();
 
         // sorts list for view to display
-        $sorts = PostController::SORTS_VIEW;
+        $sorts = Post::SORTS_VIEW;
 
         return view('post.search', compact('posts', 'sorts'));
     }
