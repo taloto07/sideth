@@ -11,6 +11,7 @@ class PostImageController extends Controller
 
     public function __construct(){
     	$this->middleware('auth');
+    	$this->middleware('admin');
     }
 
     public function destroy(Request $request, $id){

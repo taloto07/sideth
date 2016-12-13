@@ -15,21 +15,10 @@ use App\PostImage;
 class PostController extends Controller
 {
     const POST_IMAGE_MAX = 10;
-
-    const SORTS_VIEW = [
-        1 => 'Newest First',
-        2 => 'Oldest First',
-    ];
-
-    const SORTS_BY = [
-        1 => ['field' => 'created_at', 'order' => 'desc'],
-        2 => ['field' => 'created_at', 'order' => 'asc']
-    ];
-
     
     public function __construct(){
         $this->middleware('auth')->except(['index', 'show', 'search']);
-        $this->middleware('admin')->except(['index', 'show', 'search']);
+        $this->middleware('can:create,App\Post')->except(['index', 'show', 'search']);
     }
 
     private function storeImage($images, $post){
@@ -181,34 +170,12 @@ class PostController extends Controller
      */
     public function search(Request $request)
     {
-        $keyword     = $request->keyword;
-        $location_id = $request->location_id;
-        $category_id = $request->category_id;
-
-        $dynamicFilters = collect([['title', 'like', '%' . $keyword . '%']]);
-
-        // if location_id exist than add accordingly
-        if ($request->has('location_id')) {
-            $dynamicFilters->push(['location_id', '=', $location_id]);
-        }
-
-        // if category_id exist than add accordingly
-        if ($request->has('category_id')) {
-            $dynamicFilters->push(['category_id', '=', $category_id]);
-        }
-
-        // grap posts based on keyword and/or location_id and/or category_id
-        $posts = Post::where($dynamicFilters->toArray());
-
-        // if sort exist
-        if ($request->has('sort') && array_key_exists($request->sort, PostController::SORTS_BY)){
-            $sortBy = PostController::SORTS_BY[$request->sort];
-            $posts = $posts->orderBy($sortBy['field'], $sortBy['order']);
-        }
-
+        // query to database to get posts
+        $posts = Post::search($request);
         $posts = $posts->get();
 
-        $sorts = PostController::SORTS_VIEW;
+        // sorts list for view to display
+        $sorts = Post::SORTS_VIEW;
 
         return view('post.search', compact('posts', 'sorts'));
     }
@@ -223,6 +190,7 @@ class PostController extends Controller
     {
 
         Post::destroy($id);
-        return redirect()->route('posts.index');
+        return back();
+        // return redirect()->route('posts.index');
     }
 }

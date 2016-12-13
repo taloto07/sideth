@@ -21,11 +21,10 @@ class PostPolicy
     }
 
     public function create(User $user){
-        if ( $user->isAdmin() )
-            return true;
+        return $user->isAdmin();
     }
 
-    public function update(User $user){
+    public function update(User $user, Post $post){
         return $user->isAdmin();
     }
 }

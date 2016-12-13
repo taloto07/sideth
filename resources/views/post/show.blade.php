@@ -17,7 +17,7 @@
 	</div>
 
 	<div class="col-md-4">
-		@can('update', App\Post::class)
+		@can('update', $post)
 			<div class="well">
 				
 				<dl class="dl-horizontal">

@@ -12,7 +12,7 @@
 		@if ($posts->count())
 			<div class="form-inline pull-right">
 				{!! Form::label('sort', 'Sort: ') !!}
-				{!! Form::select('sort', $sorts, Request::get('sort'), ['placeholder' => '----', 'class' => 'form-control', 'id' => 'sort']) !!}
+				{!! Form::select('sort', $sorts, Request::get('sort'), ['placeholder' => 'Sort By', 'class' => 'form-control', 'id' => 'sort']) !!}
 			</div>
 			
 			<table class="table table-striped">
@@ -32,7 +32,7 @@
 						<td>{{ $post->category->name }}</td>
 						<td>{{ $post->location->city }}</td>
 						<td>{{ $post->created_at->format('M j, Y h:ia') }}</td>
-						@can('update', App\Post::class)
+						@can('update', $post)
 							<td>
 								<div class="row">
 									<div class="col-md-3">
